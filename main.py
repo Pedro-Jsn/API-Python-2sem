@@ -1,47 +1,87 @@
 import mysql.connector
+import os
+from time import sleep
 
 def main():
-    bdsql = mysql.connector.connect(host="localhost", user="root", password="TheKingBox751", database="appPython")
+    print("Iniciando o monitoramento...")
 
-    mycursor = bdsql.cursor()
+    sleep(1)
 
-    mycursor.execute("SELECT * from parametro WHERE fkServidor = 1")
+    while True:
+        bdsql, mycursor = conectar()
 
-    resposta = mycursor.fetchall()
+        mycursor.execute("SELECT * from parametro WHERE fkServidor = 1")
 
-    arquivo = open('app.txt', 'w')
+        resposta = mycursor.fetchall()
+
+        arquivo = open('app.txt', 'w')
+        
+        arquivo.write("import threading")
+
+        i=1;
+        for row in resposta :
+            isTupla = row[3]
+
+            if isTupla == 0:
+                criando_funcao = f"""
+def executar{i}(servidor, componente, metrica):
+    import psutil
+    bdsql, cursores = conectar()
+
+    sql = ("SELECT comando FROM metrica WHERE idMetrica = %s")
+    val = (metrica, )    
+    cursores.execute(sql, val)    
+
+    comando = cursores.fetchall()    
+    leitura = eval(comando[0][0])    
+
+    sql = ("INSERT INTO leitura(fkServidor, fkComponente, fkMetrica, horario, valorLido) VALUES(%s, %s, %s, now(), %s)")    
+    val = (servidor, componente, metrica, leitura, )    
+
+    cursores.execute(sql, val)
+    bdsql.commit()
+
+"""
+
+            else:
+                criando_funcao = f"""
+def executar{i}(servidor, componente, metrica):
+    import psutil
+    bdsql, cursores = conectar()
+
+    sql = ("SELECT comando FROM metrica WHERE idMetrica = %s")
+    val = (metrica, )    
+    cursores.execute(sql, val)    
+
+    comando = cursores.fetchall()    
+    leitura = eval(comando[0][0])    
+
+    for row in leitura:
+        sql = ("INSERT INTO leitura(fkServidor, fkComponente, fkMetrica, horario, valorLido) VALUES(%s, %s, %s, now(), %s)")    
+        val = (servidor, componente, metrica, row, )  
+
+        cursores.execute(sql, val)
+        bdsql.commit()
+
     
-    arquivo.write("\nimport threading")
-
-    i=1;
-    for row in resposta :
-        arquivo.write(f"\n\ndef executar{i}(servidor, componente, metrica):")
-        arquivo.write("\n  import psutil")
-        arquivo.write("\n  import mysql.connector")
-        arquivo.write('\n  bdsql = mysql.connector.connect(host="localhost", user="root", password="TheKingBox751", database="appPython")')
-        arquivo.write("\n  cursores = bdsql.cursor()")
-
-        arquivo.write(f'\n  sql = ("SELECT comando FROM metrica WHERE idMetrica = %s")')
-        arquivo.write(f"\n  val = (metrica, )")    
-        arquivo.write(f"\n  cursores.execute(sql, val)")    
-
-        arquivo.write(f"\n  comando = cursores.fetchall()")    
-        arquivo.write(f"\n  leitura = eval(comando[0][0])")    
-
-        arquivo.write(f'\n  sql = ("INSERT INTO leitura(fkServidor, fkComponente, fkMetrica, horario, valorLido) VALUES(%s, %s, %s, now(), %s)")')    
-        arquivo.write(f'\n  val = (servidor, componente, metrica, leitura, )')    
-
-        arquivo.write(f"\n  cursores.execute(sql, val)")
-        arquivo.write(f"\n  bdsql.commit()")
-
-        arquivo.write(f"\n\n\nthreading.Thread(target=executar{i}, args={row[0], row[1], row[2],}).start()")    
-
-        i = i + 1
-    arquivo.close()
-
-    executavel = open('app.txt').read()
-
-    exec(executavel)
+"""
     
+            arquivo.write(criando_funcao)
+            arquivo.write(f"threading.Thread(target=executar{i}, args=({row[0]}, {row[1]}, {row[2]},)).start()")
+
+            i = i + 1
+        arquivo.close()
+
+        exec(open('app.txt').read())
+
+        os.remove('app.txt')
+
+def conectar():
+  import mysql.connector
+  bdsql = mysql.connector.connect(host="localhost", user="root", password="TheKingBox751", database="appPython")
+  cursor = bdsql.cursor()
+
+  return (bdsql, cursor)
+
 if __name__ == '__main__':
     main()

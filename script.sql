@@ -29,7 +29,7 @@ CREATE TABLE metrica(
 
 INSERT INTO metrica(nomeMetrica, comando, unidadeMedida, tipoComponente)
 	VALUES("CPU Percent", "psutil.cpu_percent()", "%", "CPU")
-    ,("CPU Percent por core", "psutil.cpu_percent(percpu=True)", "%", "CPU")
+    ,("CPU Percent por core", "psutil.cpu_percent(interval=1, percpu=True)", "%", "CPU")
     ,("RAM Percent", "psutil.virtual_memory().percent", "%", "RAM");
 
 CREATE TABLE parametro(
@@ -48,7 +48,8 @@ INSERT INTO parametro(fkServidor, fkComponente, fkMetrica, isTupla)
     ,(1, 3, 3, 0);
 
 CREATE TABLE leitura(
-	fkServidor INT
+	idLeitura INT AUTO_INCREMENT
+    ,fkServidor INT
     ,fkComponente INT
     ,fkMetrica INT
     ,horario DATETIME
@@ -56,5 +57,5 @@ CREATE TABLE leitura(
     ,FOREIGN KEY (fkServidor) REFERENCES servidor(id)
     ,FOREIGN KEY (fkComponente) REFERENCES componente(idComponente)
     ,FOREIGN KEY (fkMetrica) REFERENCES metrica(idMetrica)
-    ,PRIMARY KEY(fkServidor, fkComponente, fkMetrica, horario)
+    ,PRIMARY KEY(idLeitura, fkServidor, fkComponente, fkMetrica, horario)
 );
