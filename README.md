@@ -1,7 +1,7 @@
 # API Python 2 semestre CCO
 
 Essa aplicação foi feita no intuito de capturar os dados da máquina de uma maneira flexível sem que os comandos ficassem blocados no código.
-Este projeto foi feito como uma tentativa de ajuda a colegas e alunos da SPTech.
+Este projeto foi feito como uma tentativa de ajudar colegas e alunos da SPTech.
 
 ## Documentação das bibliotecas utilizadas 
 
