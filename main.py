@@ -1,4 +1,3 @@
-import mysql.connector
 import os
 from time import sleep
 
@@ -78,7 +77,7 @@ def executar{i}(servidor, componente, metrica):
 
 def conectar():
   import mysql.connector
-  bdsql = mysql.connector.connect(host="localhost", user="root", password="TheKingBox751", database="appPython")
+  bdsql = mysql.connector.connect(host="localhost", user="nomeUsuario", password="SuaSenha", database="nomeBanco")
   cursor = bdsql.cursor()
 
   return (bdsql, cursor)
