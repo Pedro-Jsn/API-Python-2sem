@@ -4,7 +4,7 @@
 **Este projeto foi feito como uma tentativa de ajudar colegas e alunos da SPTech.**
 
 
-#### Como funciona?
+### Como funciona?
 **Conexão banco:**
 ```python
 import mysql.connector
@@ -36,7 +36,7 @@ pip install getmac
 **Explicação:**
 Da biblioteca **```getmac```** queremos pegar o endereço mac da máquina, então importamos a função **```get_mac_address```** e damos um apelido para essa função de **```mac```** e como o **```get_mac_address```** é uma função para executar basta colocar o **()** no apelido **```mac```** para o Python entender que você está "chamando" a função.
 
-#### Uso de Thread:
+### Uso de Thread:
 **Caso você queira um programa fazendo multitarefas, você pode utilizar o conceito de Thread, thread basicamente é você executar determinadas partes do código sem que tenha que esperar outras partes serem executadas, você pode criar várias Threads para assim trabalhar com várias tarefas simultaneamente.** 
 
 **Exemplo:**
@@ -62,7 +62,7 @@ Aqui estamos importando o modulo de threading, para podermos usar a Thread, esta
 **Observação:**
 Se o seu computador não tiver mais cores do que a quantidade de Thread que você criou, as Threads trabalharam em escalonamento, ou seja, uma será executada e após um tempo executa a próxima, depois volta para a primeira e assim sucessivamente.
 
-#### Documentação das bibliotecas utilizadas: 
+### Documentação das bibliotecas utilizadas: 
 
  - [Psutil](https://psutil.readthedocs.io/en/latest/)
  - [Threading](https://docs.python.org/3/library/threading.html)
@@ -70,7 +70,7 @@ Se o seu computador não tiver mais cores do que a quantidade de Thread que voc�
  - [Getmac](https://pypi.org/project/getmac/)
  
 
-#### Feito por: 
+### Feito por: 
 
 - [@Pedro Henrique Jesuino Varela](https://github.com/Pedro-Jsn)
 - [@Vinícius Da Silva Sousa](https://github.com/VS-Sousa)
