@@ -1,86 +1,98 @@
-import os
+import threading
 from time import sleep
 
 def main():
-    print("Iniciando o monitoramento...")
+    from getmac import get_mac_address as macaddress
 
-    sleep(1)
+    enderecoMac = macaddress()
+    bdsql, mycursor = conectar()
+    
+    query = ('SELECT * FROM servidor WHERE id = %s')
+    params = (enderecoMac, )
+    mycursor.execute(query, params)
 
-    while True:
-        bdsql, mycursor = conectar()
+    resposta = mycursor.fetchall()
 
-        mycursor.execute("SELECT * from parametro WHERE fkServidor = 1")
+    if(len(resposta) > 0):
+        selecionarParametro(mycursor, enderecoMac)
+    else :
+        cadastrarServidor(bdsql, mycursor, enderecoMac)
 
-        resposta = mycursor.fetchall()
+def cadastrarServidor(bdsql, cursor, mac):
+    query = ("INSERT INTO servidor(id) VALUES (%s)")
+    params = (mac,)
+    cursor.execute(query, params)
 
-        arquivo = open('app.txt', 'w')
-        
-        arquivo.write("import threading")
-
-        i=1;
-        for row in resposta :
-            isTupla = row[3]
-
-            if isTupla == 0:
-                criando_funcao = f"""
-def executar{i}(servidor, componente, metrica):
-    import psutil
-    bdsql, cursores = conectar()
-
-    sql = ("SELECT comando FROM metrica WHERE idMetrica = %s")
-    val = (metrica, )    
-    cursores.execute(sql, val)    
-
-    comando = cursores.fetchall()    
-    leitura = eval(comando[0][0])    
-
-    sql = ("INSERT INTO leitura(fkServidor, fkComponente, fkMetrica, horario, valorLido) VALUES(%s, %s, %s, now(), %s)")    
-    val = (servidor, componente, metrica, leitura, )    
-
-    cursores.execute(sql, val)
     bdsql.commit()
 
-"""
+def selecionarParametro(cursor, mac):
 
-            else:
-                criando_funcao = f"""
-def executar{i}(servidor, componente, metrica):
+    query = ("SELECT * from parametro WHERE fkServidor = %s")
+    params = (mac, )
+    cursor.execute(query, params)
+
+    resposta = cursor.fetchall()
+
+    if(len(resposta) > 0):
+        executarMonitoramento(resposta)
+    else:
+        print("Nenhuma componente cadastrado para monitoramento, cadastre na sua dashboard!")
+        sleep(3)
+
+def executarMonitoramento(resposta):
+    while True:
+        script = """
+import threading   
+        """
+
+        i=1
+        for row in resposta:
+            script += f"""
+def executar_{i}(servidor, componente, metrica):
     import psutil
     bdsql, cursores = conectar()
 
-    sql = ("SELECT comando FROM metrica WHERE idMetrica = %s")
+    query = ("SELECT comando, isTupla FROM metrica WHERE idMetrica = %s")
     val = (metrica, )    
-    cursores.execute(sql, val)    
+    cursores.execute(query, val)    
 
-    comando = cursores.fetchall()    
-    leitura = eval(comando[0][0])    
+    resposta = cursores.fetchall() # resposta retorna isto [(comando, isTupla)]
+    isTupla = resposta[0][1]
 
-    for row in leitura:
-        sql = ("INSERT INTO leitura(fkServidor, fkComponente, fkMetrica, horario, valorLido) VALUES(%s, %s, %s, now(), %s)")    
-        val = (servidor, componente, metrica, row, )  
+    comando = resposta[0][0]    
+    leitura = eval(comando)    
 
-        cursores.execute(sql, val)
+    if isTupla == 0:
+        query = ("INSERT INTO leitura(fkServidor, fkComponente, fkMetrica, horario, valorLido) VALUES(%s, %s, %s, now(), %s)")    
+        val = (servidor, componente, metrica, leitura, )
+            
+        cursores.execute(query, val)
         bdsql.commit()
+    else: 
+        for row in leitura:
+            query = ("INSERT INTO leitura(fkServidor, fkComponente, fkMetrica, horario, valorLido) VALUES(%s, %s, %s, now(), %s)")    
+            val = (servidor, componente, metrica, row, )  
 
-    
-"""
-    
-            arquivo.write(criando_funcao)
-            arquivo.write(f"threading.Thread(target=executar{i}, args=({row[0]}, {row[1]}, {row[2]},)).start()")
+            cursores.execute(query, val)
+            bdsql.commit()
 
-            i = i + 1
-        arquivo.close()
+threading.Thread(target=executar_{i}, args=('{row[0]}', {row[1]}, {row[2]},)).start()
+    """
+        i += 1
+        if script != None:
+            exec(script)
 
-        exec(open('app.txt').read())
+        sleep(10)
+        print("Executando...")
 
-        os.remove('app.txt')
 
 def conectar():
-  import mysql.connector
-  bdsql = mysql.connector.connect(host="localhost", user="nomeUsuario", password="SuaSenha", database="nomeBanco")
-  cursor = bdsql.cursor()
+    import mysql.connector
 
-  return (bdsql, cursor)
+    bdsql = mysql.connector.connect(host="localhost", user="root", password="TheKingBox751", database="appPython")
+    mycursor = bdsql.cursor()
+
+    return (bdsql, mycursor)
 
 if __name__ == '__main__':
     main()

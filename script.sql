@@ -1,23 +1,27 @@
 CREATE DATABASE appPython;
 USE appPython;
 
+# DROP DATABASE appPython;
+
 CREATE TABLE servidor(
-	id INT PRIMARY KEY AUTO_INCREMENT
+	id CHAR(17) PRIMARY KEY
 );
+
+SELECT * FROM servidor;
 
 INSERT INTO servidor VALUES();
 
 CREATE TABLE componente(
 	idComponente INT PRIMARY KEY AUTO_INCREMENT
-    ,fkServidor INT
+    ,fkServidor CHAR(17)
     ,tipoComponente VARCHAR(25)
     ,FOREIGN KEY (fkServidor) REFERENCES servidor(id)
 );
 
 INSERT INTO componente(fkServidor, tipoComponente)
-	VALUES(1, "CPU")
-    ,(1, "CPU")
-    ,(1, "RAM");
+	VALUES('0c:9d:92:00:02:b5', "CPU")
+    ,('0c:9d:92:00:02:b5', "DISCO")
+    ,('0c:9d:92:00:02:b5', "RAM");
 
 CREATE TABLE metrica(
 	idMetrica INT PRIMARY KEY AUTO_INCREMENT
@@ -25,31 +29,33 @@ CREATE TABLE metrica(
     ,comando VARCHAR(75)
     ,unidadeMedida VARCHAR(50)
     ,tipoComponente VARCHAR(50)
+    ,isTupla INT
 );
 
-INSERT INTO metrica(nomeMetrica, comando, unidadeMedida, tipoComponente)
-	VALUES("CPU Percent", "psutil.cpu_percent()", "%", "CPU")
-    ,("CPU Percent por core", "psutil.cpu_percent(interval=1, percpu=True)", "%", "CPU")
-    ,("RAM Percent", "psutil.virtual_memory().percent", "%", "RAM");
+INSERT INTO metrica(nomeMetrica, comando, unidadeMedida, tipoComponente, isTupla)
+	VALUES("CPU Percent", "psutil.cpu_percent()", "%", "CPU", 0)
+    ,("CPU Percent por core", "psutil.cpu_percent(interval=1, percpu=True)", "%", "CPU", 1)
+    ,("Disco percent", "psutil.disk_usage('/').percent", "%", "DISCO", 0)
+    ,("RAM Percent", "psutil.virtual_memory().percent", "%", "RAM", 0);
 
 CREATE TABLE parametro(
-	fkServidor INT
+	fkServidor CHAR(17)
     ,fkComponente INT
     ,fkMetrica INT
-    ,isTupla INT
     ,FOREIGN KEY (fkServidor) REFERENCES servidor(id)
     ,FOREIGN KEY (fkComponente) REFERENCES componente(idComponente)
     ,FOREIGN KEY (fkMetrica) REFERENCES metrica(idMetrica)
 );
 
-INSERT INTO parametro(fkServidor, fkComponente, fkMetrica, isTupla)
-	VALUES(1, 1, 1, 0)
-    ,(1, 2, 2, 1)
-    ,(1, 3, 3, 0);
+INSERT INTO parametro(fkServidor, fkComponente, fkMetrica)
+	VALUES('0c:9d:92:00:02:b5', 1, 1)
+    ,('0c:9d:92:00:02:b5', 1, 2)
+    ,('0c:9d:92:00:02:b5', 2, 3)
+    ,('0c:9d:92:00:02:b5', 3, 4);
 
 CREATE TABLE leitura(
 	idLeitura INT AUTO_INCREMENT
-    ,fkServidor INT
+    ,fkServidor CHAR(17)
     ,fkComponente INT
     ,fkMetrica INT
     ,horario DATETIME
@@ -59,3 +65,12 @@ CREATE TABLE leitura(
     ,FOREIGN KEY (fkMetrica) REFERENCES metrica(idMetrica)
     ,PRIMARY KEY(idLeitura, fkServidor, fkComponente, fkMetrica, horario)
 );
+
+SELECT * FROM leitura;
+
+CREATE VIEW medicoes AS
+	SELECT fkComponente, tipoComponente, valorLido, horario FROM leitura
+    INNER JOIN componente ON fkComponente = idComponente
+    ORDER BY fkComponente;
+    
+SELECT * FROM medicoes;
