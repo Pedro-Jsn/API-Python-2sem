@@ -1,22 +1,20 @@
-import threading
 from time import sleep
 
 def main():
-    from getmac import get_mac_address as macaddress
+    from getmac import get_mac_address as mac
 
-    enderecoMac = macaddress()
     bdsql, mycursor = conectar()
     
     query = ('SELECT * FROM servidor WHERE id = %s')
-    params = (enderecoMac, )
+    params = (mac(), )
     mycursor.execute(query, params)
 
     resposta = mycursor.fetchall()
 
     if(len(resposta) > 0):
-        selecionarParametro(mycursor, enderecoMac)
+        selecionarParametro(mycursor, mac())
     else :
-        cadastrarServidor(bdsql, mycursor, enderecoMac)
+        cadastrarServidor(bdsql, mycursor, mac())
 
 def cadastrarServidor(bdsql, cursor, mac):
     query = ("INSERT INTO servidor(id) VALUES (%s)")
@@ -89,7 +87,7 @@ threading.Thread(target=executar_{i}, args=('{row[0]}', {row[1]}, {row[2]},)).st
 def conectar():
     import mysql.connector
 
-    bdsql = mysql.connector.connect(host="localhost", user="root", password="TheKingBox751", database="appPython")
+    bdsql = mysql.connector.connect(host="localhost", user="seuUser", password="senhaUser", database="nomeBanco")
     mycursor = bdsql.cursor()
 
     return (bdsql, mycursor)
